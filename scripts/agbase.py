@@ -1,6 +1,5 @@
 import os
 import json
-from json import JSONDecodeError
 import signal
 from pathlib import Path
 from prompt_toolkit.shortcuts import yes_no_dialog
@@ -81,7 +80,7 @@ class AGBASE():
                     result = False
                 else:
                     result = "ERROR: Config File not readable " + self._configFile
-        except JSONDecodeError:
+        except ValueError:
             if not silent:
                 result = False
             else:
