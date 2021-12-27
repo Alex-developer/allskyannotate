@@ -532,7 +532,3 @@ The uninstaller will replace the allsky save image script with the backup made d
 # Upgrading AllSky
 
 After ugrading allsky its very **IMPORTANT** that you re run the installer
-
-## TODO
-* Uninstall
-* Allow for alpha channels in images
