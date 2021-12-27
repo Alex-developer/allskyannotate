@@ -1,0 +1,16 @@
+{
+    "fields": {
+    },
+    "images": {
+    },
+    "fonts": {
+        "moon": {
+            "fontPath": "fonts/moon_phases.ttf",
+            "fontSize": 20
+        },
+        "default": {
+            "fontPath": "fonts/Roboto-Medium.ttf",
+            "fontSize": 16
+        }
+    }
+}

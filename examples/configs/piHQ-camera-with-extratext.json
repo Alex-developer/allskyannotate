@@ -1,0 +1,25 @@
+{
+    "fields": {
+        "file": {
+            "file": "<SET THE FULL PATH TO THE EXTRA TEXT FILE HERE>",
+            "position": {
+                "x": 15,
+                "y": 10
+            },
+            "colour": "white",
+            "font": "default"
+        }
+    },
+    "images": {
+    },
+    "fonts": {
+        "moon": {
+            "fontPath": "fonts/moon_phases.ttf",
+            "fontSize": 20
+        },
+        "default": {
+            "fontPath": "fonts/Roboto-Medium.ttf",
+            "fontSize": 16
+        }
+    }
+}

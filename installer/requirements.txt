@@ -1,0 +1,5 @@
+numpy==1.21.4
+opencv_python==4.5.3.56
+Pillow==8.4.0
+pyephem==9.99
+prompt_toolkit
