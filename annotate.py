@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 """ Annotaes and image provided by the allsky software https://github.com/thomasjacquin/allsky 
     
