@@ -13,6 +13,7 @@ testdata/
 images/*.png
 backups/
 last.png
+liveview-image.png
 
 # Distribution / packaging
 .Python
