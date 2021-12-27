@@ -91,6 +91,9 @@ Its important that the annotation script can access all of the allsky data and c
 
 ## Dependencies
 
+### Python3
+The annotater requires python3 and will **not** run on python2. Python3 does not have to be the default on your system but it must be installed
+
 ### Allsky
 The allsky software must be setup and working correctly before attempting to install this script.
 Please make a backup of any scripts that you change in the allsky software and note that you will have to make the changes again should you update the allsky software
