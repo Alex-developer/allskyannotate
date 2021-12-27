@@ -71,8 +71,8 @@ check_allsky_not_running() {
 check_and_install_config() {
 	if [ ! -f "annotate.json" ]; then
 		if (whiptail --title "$TITLE" --yesno "No config file found would you like to see a basic list of configs and install one?" 10 78); then
-			if file_select "Please, select a file" ./examples/configs "*.json" ; then
-				cp ./examples/configs/$FILE_SELECTED ./annotate.json
+			if file_select "Please, select a file" ../examples/configs "*.json" ; then
+				cp ../examples/configs/$FILE_SELECTED ../annotate.json
 			fi
 		fi	
 	fi
