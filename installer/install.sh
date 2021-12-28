@@ -6,6 +6,15 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 source ${SCRIPT_DIR}/installercommon.sh
 
+check_dir() {
+	INSTALLRUNDIR=${PWD##*/} 
+
+	if [ "$INSTALLRUNDIR" != "installer" ]; then
+		whiptail --title "$TITLE" --msgbox "Please run the installer from the installer directory"  10 78
+		exit 1
+	fi
+}
+
 calc_wt_size() {
         # NOTE: it's tempting to redirect stderr to /dev/null, so supress error
         # output from tput. However in this case, tput detects neither stdout or
@@ -97,6 +106,7 @@ function file_select
     FILE_SELECTED=$(whiptail --clear --backtitle "" --title "$TITLE" --menu "" 38 80 30 ${FILES[@]} 3>&1 1>&2 2>&3)
 }
 
+check_dir
 check_allsky_Installed
 check_allsky_not_running
 source "${ALLSKY_HOME}/variables.sh"
@@ -108,8 +118,8 @@ confirm
 
 TERM=ansi # Fix a bug on some shells that prevents the infobox appearing
 whiptail --title "$TITLE" --infobox "Checking and installing Dependencies. Please wait as this may take a few minutes" 8 78
-pip3 install -r "${SCRIPT_DIR}/requirements.txt" 2>&1 > dependencies.log
-sudo apt-get install libatlas-base-dev 2>&1 >> dependencies.log
+pip3 install --no-warn-script-location -r "${SCRIPT_DIR}/requirements.txt" 2>&1 > dependencies.log
+sudo apt-get -y install libatlas-base-dev 2>&1 >> dependencies.log
 auto_modify
 
 if [ "$AUTO" = "YES" ]; then
