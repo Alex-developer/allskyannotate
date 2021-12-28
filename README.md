@@ -2,6 +2,8 @@
 
 A script to allow annotation of images created by Thomas Jacquin's allsky software - https://github.com/thomasjacquin/allsky
 
+**This is BETA Software and should only be used if you are comfortable installing and configuring software**
+
 ![ZWO Example 1](docimages/zwo-example1.png?raw=true "Example 1")
 
 **Please read all of this document before using this script**
