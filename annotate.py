@@ -94,7 +94,7 @@ class ALLSKYANNOTATE:
         self._log("NOTICE: kwars set to " + str(self._kwargs))
 
     def _log(self, text):
-        """ Very simple method to lod data if in verbose mode """
+        """ Very simple method to log data if in verbose mode """
         if self._verbose:
             print(text, file=sys.stdout)
 
@@ -174,6 +174,9 @@ class ALLSKYANNOTATE:
 
                 self._observerLat = self._cameraConfig["latitude"]
                 self._observerLon = self._cameraConfig["longitude"]
+
+                self._log("INFO: Allsky found in " + self._allSkyHomeDirectory)
+                self._log("INFO: Camera Type: " + self._allSkyVariables["CAMERA"] + " Latitude: " + self._observerLat + " Longitude: " + self._observerLon)
             except FileNotFoundError:
                 self._log("ERROR: Cannot find the allsky camera config")
                 result = False
