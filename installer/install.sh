@@ -4,32 +4,6 @@ TITLE="AllSky Image Annotater Installer"
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-source ${SCRIPT_DIR}/installercommon.sh
-
-check_dir() {
-	INSTALLRUNDIR=${PWD##*/} 
-
-	if [ "$INSTALLRUNDIR" != "installer" ]; then
-		whiptail --title "$TITLE" --msgbox "Please run the installer from the installer directory"  10 78
-		exit 1
-	fi
-}
-
-calc_wt_size() {
-        # NOTE: it's tempting to redirect stderr to /dev/null, so supress error
-        # output from tput. However in this case, tput detects neither stdout or
-        # stderr is a tty and so only gives default 80, 24 values
-        WT_HEIGHT=18
-        WT_WIDTH=$(tput cols)
-
-        if [ -z "$WT_WIDTH" ] || [ "$WT_WIDTH" -lt 60 ]; then
-                WT_WIDTH=80
-        fi
-        if [ "$WT_WIDTH" -gt 178 ]; then
-                WT_WIDTH=120
-        fi
-        WT_MENU_HEIGHT=$(($WT_HEIGHT-7))
-}
 
 
 confirm() {
@@ -41,44 +15,32 @@ confirm() {
 	fi
 }
 
-check_installed() {
-	MODDED=`grep annotate.py ${SAVE_SCRIPT}`
-	if [ ! -z "$MODDED" ]; then
-       		if (whiptail --title "$TITLE" --yesno "The annotater appears to be installed. Would you like to continue?" 10 78); then
-       	        	GO="YES"
-			else
-				exit 1
-	        fi
+check_if_installed() {
+    if [[ -f ${SAVE_SCRIPT} ]]; then
+	    MODDED=`grep annotate.py ${SAVE_SCRIPT}`
+    fi
+
+	if [[ ! -z ${MODDED} ]]; then
+    	if (whiptail --title "$TITLE" --yesno "The annotater appears to be installed. Would you like to continue?" 10 78); then
+       		GO="YES"
+		else
+			exit 1
+	    fi
 	fi
 }
 
 auto_modify() {
 	AUTO="NO"
 	MODDED=`grep annotate.py ${SAVE_SCRIPT}`
-	if [ -z "$MODDED" ]; then
-       		if (whiptail --title "$TITLE" --yesno "Do you wish to automatically modify the allsky scripts to run the annotater?" 10 78); then
-       	        	AUTO="YES"
-	        fi
-	fi
-}
-
-check_allsky_Installed() {
-	if [ -z "${ALLSKY_HOME}" ]; then
-		whiptail --title "$TITLE" --msgbox "Unable to locate the AllSky software. Please ensure you are running this script as the same user that AllSky runs as, normally pi. The installation will now abort"  10 78
-		exit 1
-	fi
-}
-
-check_allsky_not_running() {
-	ALLSKY_PID=`pgrep allsky.sh`
-	if [ ! -z "$ALLSKY_PID" ]; then
-		whiptail --title "$TITLE" --msgbox "The AllSky Software appears to be running, on pid ${ALLSKY_PID}. Please stop the Allsky software before attempting this installation"  10 78
-		exit 1
+	if [[ -z ${MODDED} ]]; then
+       	if (whiptail --title "$TITLE" --yesno "Do you wish to automatically modify the allsky scripts to run the annotater?" 10 78); then
+       	    AUTO="YES"
+	    fi
 	fi
 }
 
 check_and_install_config() {
-	if [ ! -f "../annotate.json" ]; then
+	if [[ ! -f "../annotate.json" ]]; then
 		if (whiptail --title "$TITLE" --yesno "No config file found would you like to see a basic list of configs and install one?" 10 78); then
 			if file_select "Please, select a file" ../examples/configs "*.json" ; then
 				cp ../examples/configs/$FILE_SELECTED ../annotate.json
@@ -106,26 +68,48 @@ function file_select
     FILE_SELECTED=$(whiptail --clear --backtitle "" --title "$TITLE" --menu "" 38 80 30 ${FILES[@]} 3>&1 1>&2 2>&3)
 }
 
+source "${ALLSKY_HOME}/variables.sh"
+source "${SCRIPT_DIR}/installercommon.sh"
 check_dir
 check_allsky_Installed
 check_allsky_not_running
-source "${ALLSKY_HOME}/variables.sh"
-SAVE_SCRIPT="${ALLSKY_SCRIPTS}/saveImageNight.sh"
+check_allsky_type
+
 ANNOTATE_SCRIPT="$(dirname ${PWD})/annotate.py"
-calc_wt_size
-check_installed
+
+check_if_installed
 confirm
 
 TERM=ansi # Fix a bug on some shells that prevents the infobox appearing
 whiptail --title "$TITLE" --infobox "Checking and installing Dependencies. Please wait as this may take a few minutes" 8 78
-pip3 install --no-warn-script-location -r "${SCRIPT_DIR}/requirements.txt" 2>&1 > dependencies.log
-sudo apt-get -y install libatlas-base-dev 2>&1 >> dependencies.log
+#pip3 install --no-warn-script-location -r "${SCRIPT_DIR}/requirements.txt" 2>&1 > dependencies.log
+#sudo apt-get -y install libatlas-base-dev 2>&1 >> dependencies.log
 auto_modify
 
-if [ "$AUTO" = "YES" ]; then
+if [[ ${AUTO} == "YES" ]]; then
 	DATE=`date`
-        cp "${SAVE_SCRIPT}" "${ALLSKY_SCRIPTS}/saveImageNight.sh-bak"
-	sed -i -e "s~${INSERT_ANNOTATER_BEFORE}~\n# Run the image annotation script. Added by the annotater installer on ${DATE}\nif [[ -x \"${ANNOTATE_SCRIPT}\" ]]\nthen\n  ${ANNOTATE_SCRIPT}\nfi\n\n\n# Copy image to the final location.~g" ${ALLSKY_SCRIPTS}/saveImageNight.sh
+	if [[ ${ALLSKYTYPE} == "OLD" ]]; then
+        cp "${SAVE_SCRIPT}" "${SAVE_SCRIPT}-bak"
+        cp "${SAVE_SCRIPT_DAY}" "${SAVE_SCRIPT_DAY}-bak"
+		sed -i -e "s~${INSERT_ANNOTATER_BEFORE}~# Start AllSky Annotater\n# Run the image annotation script. Added by the annotater installer on ${DATE}\nif [[ -z \${IMAGE_PROCESSING_STAGE} || \${IMAGE_PROCESSING_STAGE} == \"POST\" ]]; then\n  if [[ -x \"${ANNOTATE_SCRIPT}\" ]]\nthen\n    ${ANNOTATE_SCRIPT} -k stage=\${IMAGE_PROCESSING_STAGE} daynight=\${IMAGE_DAY_OR_NIGHT} filename=\${IMAGE_FILE_NAME} cameratemp=\${IMAGE_TEMP} exposure=\${IMAGE_EXPOSURE}\n  fi\nfi\n# End AllSky Annotater\n\n${INSERT_ANNOTATER_BEFORE}~g" ${SAVE_SCRIPT}
+		sed -i -e "s~${INSERT_ANNOTATER_BEFORE}~# Start AllSky Annotater\n# Run the image annotation script. Added by the annotater installer on ${DATE}\nif [[ -z \${IMAGE_PROCESSING_STAGE} || \${IMAGE_PROCESSING_STAGE} == \"POST\" ]]; then\n  if [[ -x \"${ANNOTATE_SCRIPT}\" ]]\nthen\n    ${ANNOTATE_SCRIPT} -k stage=\${IMAGE_PROCESSING_STAGE} daynight=\${IMAGE_DAY_OR_NIGHT} filename=\${IMAGE_FILE_NAME} cameratemp=\${IMAGE_TEMP} exposure=\${IMAGE_EXPOSURE}\n  fi\nfi\n# End AllSky Annotater\n\n${INSERT_ANNOTATER_BEFORE}~g" ${SAVE_SCRIPT_DAY}
+	else 
+		if [[ ! -f ${SAVE_SCRIPT} ]]; then
+			cp "${SAVE_SCRIPT_REPO}" "${SAVE_SCRIPT}"
+		fi
+		echo "" >> ${SAVE_SCRIPT}
+		echo "" >> ${SAVE_SCRIPT}
+		echo "# Start AllSky Annotater" >> ${SAVE_SCRIPT}
+		echo "# Run the image annotation script. Added by the annotater installer on ${DATE}" >> ${SAVE_SCRIPT}
+		echo "if [[ -z \${IMAGE_PROCESSING_STAGE} || \${IMAGE_PROCESSING_STAGE} == \"POST\" ]]; then" >> ${SAVE_SCRIPT}
+		echo "	if [[ -x \"${ANNOTATE_SCRIPT}\" ]]; then" >> ${SAVE_SCRIPT}
+		echo "  		${ANNOTATE_SCRIPT} -k stage=\${IMAGE_PROCESSING_STAGE} daynight=\${IMAGE_DAY_OR_NIGHT} filename=\${IMAGE_FILE_NAME} cameratemp=\${IMAGE_TEMP} exposure=\${IMAGE_EXPOSURE}" >> ${SAVE_SCRIPT}
+		echo "	fi" >> ${SAVE_SCRIPT}
+		echo "fi" >> ${SAVE_SCRIPT}
+		echo "# End AllSky Annotater" >> ${SAVE_SCRIPT}
+		echo "" >> ${SAVE_SCRIPT}
+		echo "" >> ${SAVE_SCRIPT}
+	fi
 fi
 
 check_and_install_config
