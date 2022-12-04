@@ -90,7 +90,7 @@ class AGBASE():
 
     def _saveConfigFile(self):
         with open(self._configFile, 'w') as file:
-            json.dump(self._config, file)  
+            json.dump(self._config, file, indent=5)  
 
     def _checkFieldExists(self, field, type):
         result = True
